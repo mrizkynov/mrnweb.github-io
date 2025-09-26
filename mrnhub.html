@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRN Studio - Portofolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            overflow: hidden;
+        }
+
+        /* Custom style for serif font */
+        .font-classy-serif {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+        }
+
+        /* Hide scrollbar when modal is open */
+        .modal-open {
+            overflow: hidden;
+        }
+
+        /* Base transition styles for the modal */
+        #detail-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #detail-modal > div:last-child {
+             transition: transform 0.3s ease-in-out;
+        }
+
+
+        /* --- Welcome Overlay --- */
+        #welcome-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: #ffffff;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-in-out;
+        }
+        .menu-active #welcome-overlay, .is-closing #welcome-overlay {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* --- Header --- */
+        #main-header {
+            opacity: 0;
+            transition: opacity 1s ease-in-out 1s; /* Muncul setelah 1 detik */
+            z-index: 101;
+        }
+
+        /* --- Main Layout & Toggle --- */
+        #menu-toggle-icon {
+            transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+        .menu-active #menu-toggle-icon {
+            transform: rotate(135deg);
+        }
+
+        /* --- Vertical Line --- */
+        #vertical-line {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 0;
+            background-color: #000;
+            transition: height 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+            z-index: 40;
+        }
+        .menu-active #vertical-line {
+            height: 100%;
+            transition-delay: 0.4s; /* Delay saat muncul */
+        }
+
+        /* --- Sliding Navbar (Left) --- */
+        #sliding-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100vh;
+            background-color: #ffffff;
+            transform: translateX(-100%);
+            transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+            z-index: 30;
+            padding: 6rem 2rem 2rem;
+        }
+        .menu-active #sliding-navbar {
+            transform: translateX(0);
+            transition-delay: 0.4s; /* Delay saat muncul */
+        }
+        
+        /* --- Left Slider / Carousel --- */
+        .slide {
+            position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out; transform: scale(0.95);
+            padding: 6rem 2rem 6rem;
+        }
+        .slide.active { opacity: 1; transform: scale(1); z-index: 10; }
+        
+        /* --- New SVG Button Container --- */
+        #svg-button-container {
+            position: fixed;
+            left: 50%;
+            top: 100px;
+            transform: translateX(-75px);
+            z-index: 45;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s, transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+            transform-origin: top center;
+        }
+        .menu-active #svg-button-container {
+            opacity: 1;
+            pointer-events: auto;
+            transition-delay: 0.4s; /* Delay saat muncul */
+        }
+        .menu-active #svg-button-container.is-expanded {
+            transform: translateX(-75px) scale(1.1);
+        }
+        #custom-svg-button #body {
+            transition: height 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+        #custom-svg-button #arrow {
+            transition: opacity 0.3s ease;
+        }
+        .sub-icon {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .is-expanded .sub-icon {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .is-expanded .sub-icon:nth-of-type(1) { transition-delay: 0.1s; }
+        .is-expanded .sub-icon:nth-of-type(2) { transition-delay: 0.2s; }
+        .is-expanded .sub-icon:nth-of-type(3) { transition-delay: 0.3s; }
+
+        /* --- Right Side Content & Black Box --- */
+        #right-content-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100vh;
+        }
+        #welcome-message-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #black-box {
+            position: absolute;
+            top: 35%;
+            left: 55%;
+            width: 40vw;
+            height: 25vh;
+            background-color: #000;
+            border-radius: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0.9);
+            transition: opacity 0.6s cubic-bezier(0.76, 0, 0.24, 1), transform 0.6s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+        .panel-active #welcome-message-placeholder {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .panel-active #black-box {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+            transition-delay: 0.2s;
+        }
+        
+        /* --- Typography Banner Slider (Inside Black Box) --- */
+        .typo-slide {
+            position: absolute; inset: 0; display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.8s ease-in-out; color: #fff;
+        }
+        .typo-slide.active { opacity: 1; }
+        
+        .typo-nav-btn {
+             width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.5); color: white;
+             border-radius: 9999px; display: flex; align-items: center; justify-content: center;
+             transition: background-color 0.2s;
+        }
+        .typo-nav-btn:hover { background-color: rgba(255,255,255,0.1); }
+        .typo-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* --- View Details Button (Mobile Only) --- */
+        .view-details-btn {
+            display: none; /* Hidden by default */
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s, opacity 0.5s, transform 0.5s;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .slide.active .view-details-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+        /* --- Penyesuaian Mobile --- */
+        @media (max-width: 768px) {
+            #sliding-navbar { width: 100%; }
+            #vertical-line { display: none; } /* Garis dihilangkan di mobile */
+            #right-content-container { display: none; } /* Hide the right side completely on mobile */
+            .menu-active #right-content-container { opacity: 0; pointer-events: none; }
+            #svg-button-container { display: none; }
+            
+            /* Show the view details button only on mobile */
+            .view-details-btn {
+                display: block; 
+            }
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <!-- Welcome Overlay (Initial Screen) -->
+    <div id="welcome-overlay">
+        <h1 class="text-5xl md:text-6xl font-black tracking-wider">WELCOME</h1>
+        <p class="mt-4 text-lg md:text-xl text-gray-600 tracking-widest">GLAD YOU’RE HERE</p>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header" class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center h-24 px-6 md:px-8">
+        <a href="#" class="text-2xl font-black tracking-widest">MRN</a>
+        <button id="menu-toggle" class="w-12 h-12 border-2 border-black rounded-full flex justify-center items-center hover:bg-gray-100 transition-colors">
+            <svg id="menu-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+    </header>
+
+    <!-- Main Content Area (Right Side) -->
+    <main id="right-content-container">
+        <!-- Placeholder for content after welcome message is gone -->
+        <div id="welcome-message-placeholder" class="text-center"></div>
+        
+        <!-- Black Box with Typography Slider -->
+        <div id="black-box">
+            <div id="typography-slider" class="relative w-full h-full">
+                <div id="typography-slides-container" class="relative w-full h-full">
+                    <!-- Content will be cloned here by JS -->
+                </div>
+                <div class="absolute bottom-4 right-4 flex gap-2">
+                    <button id="prev-typo-slide" class="typo-nav-btn">&lt;</button>
+                    <button id="next-typo-slide" class="typo-nav-btn">&gt;</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Detail Modal -->
+    <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <!-- Backdrop -->
+        <div id="modal-backdrop" class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+
+        <!-- Modal Box -->
+        <div class="relative w-full max-w-md bg-black rounded-2xl p-8 text-white transform scale-95">
+            <!-- Close Button -->
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors text-2xl leading-none">&times;</button>
+
+            <!-- Content -->
+            <div id="mobile-detail-content" class="text-center min-h-[10rem] flex items-center justify-center">
+                <!-- Content injected by JS -->
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="absolute bottom-6 right-6 flex items-center gap-3">
+                <button id="prev-mobile-detail-slide" class="w-9 h-9 flex items-center justify-center border border-gray-600 rounded-full hover:bg-gray-800 transition-colors typo-nav-btn">&lt;</button>
+                <button id="next-mobile-detail-slide" class="w-9 h-9 flex items-center justify-center border border-gray-600 rounded-full hover:bg-gray-800 transition-colors typo-nav-btn">&gt;</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Vertical Line -->
+    <div id="vertical-line"></div>
+    
+    <!-- New SVG Button -->
+    <div id="svg-button-container">
+        <svg id="custom-svg-button" width="80" height="120" viewBox="0 0 100 400" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Body -->
+            <rect id="body" x="20" y="0" rx="30" ry="30" width="60" height="100" fill="#222" />
+            <!-- Dots -->
+            <circle cx="40" cy="25" r="2" fill="#777" />
+            <circle cx="50" cy="25" r="2" fill="#777" />
+            <circle cx="60" cy="25" r="2" fill="#777" />
+            <circle cx="40" cy="35" r="2" fill="#777" />
+            <circle cx="50" cy="35" r="2" fill="#777" />
+            <circle cx="60" cy="35" r="2" fill="#777" />
+            <!-- Arrow -->
+            <polyline id="arrow" points="40,75 50,85 60,75" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+            
+            <!-- Sub Icons (initially hidden) -->
+            <g class="sub-icon" id="sub-icon-1">
+                <circle cx="50" cy="140" r="18" fill="#333"/>
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="white" stroke-width="1.5" fill="none" transform="translate(38, 128) scale(0.8)"/>
+            </g>
+            <g class="sub-icon" id="sub-icon-2">
+                <circle cx="50" cy="200" r="18" fill="#333"/>
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="white" stroke-width="1.5" fill="none" transform="translate(38, 188) scale(0.8)"/>
+            </g>
+             <g class="sub-icon" id="sub-icon-3">
+                <circle cx="50" cy="260" r="18" fill="#333"/>
+                <path d="M3 3h18v18H3z" stroke="white" stroke-width="1.5" fill="none" transform="translate(38, 248) scale(0.8)"/>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Sliding Navbar (Left Side) -->
+    <nav id="sliding-navbar" class="flex flex-col">
+        <div id="slider" class="relative flex-grow overflow-hidden">
+            <div id="slides-container">
+                <div class="slide active">
+                    <div class="text-center">
+                        <svg class="w-48 h-48 mx-auto" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 80 L20 30 Q20 20 30 20 L70 20 Q80 20 80 30 L80 80" stroke="black" stroke-width="5" fill="none"/><path d="M20 55 L50 25 L80 55" stroke="black" stroke-width="5" fill="none"/><path d="M50 25 V 80" stroke="black" stroke-width="5" fill="none"/></svg>
+                        <h2 class="text-4xl font-black tracking-widest mt-4">MRN</h2><p class="text-gray-500">Design Studio</p>
+                    </div>
+                </div>
+                <div class="slide" data-details-bg="bg-red-500">
+                    <img src="https://placehold.co/600x400/000000/ffffff?text=Proyek+Satu" alt="Proyek Satu" class="w-full h-1/2 object-cover rounded-lg mb-6">
+                    <h3 class="text-2xl font-bold">Branding Korporat</h3>
+                    <p class="text-gray-600 mt-2 text-center max-w-md">Perombakan identitas visual lengkap untuk perusahaan teknologi terkemuka.</p>
+                    <button class="view-details-btn mt-6">View Details</button>
+                </div>
+                <div class="slide" data-details-bg="bg-blue-500">
+                    <img src="https://placehold.co/600x400/eeeeee/000000?text=Proyek+Dua" alt="Proyek Dua" class="w-full h-1/2 object-cover rounded-lg mb-6">
+                    <h3 class="text-2xl font-bold">Pengalaman Web</h3>
+                    <p class="text-gray-600 mt-2 text-center max-w-md">Situs web 3D imersif untuk perusahaan real estate mewah.</p>
+                    <button class="view-details-btn mt-6">View Details</button>
+                </div>
+                <div class="slide" data-details-bg="bg-green-500">
+                    <h3 class="text-3xl font-bold">Mari Berkolaborasi.</h3>
+                    <p class="text-gray-600 mt-4 text-center max-w-md">Punya proyek? Saya tersedia untuk pekerjaan freelance dan kolaborasi.</p>
+                    <button class="view-details-btn mt-6">View Details</button>
+                    <a href="mailto:halo@mrn.studio" class="mt-8 bg-black text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors">halo@mrn.studio</a>
+                </div>
+            </div>
+        </div>
+        <div class="flex-shrink-0 flex justify-between items-center p-4 mt-4">
+            <button id="prev-slide" class="w-12 h-12 border border-gray-300 rounded-full flex justify-center items-center hover:bg-gray-100 transition-colors disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+            <div id="slide-indicators" class="flex space-x-3"></div>
+            <button id="next-slide" class="w-12 h-12 border border-gray-300 rounded-full flex justify-center items-center hover:bg-gray-100 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></button>
+        </div>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const menuToggle = document.getElementById('menu-toggle');
+            const rightContentContainer = document.getElementById('right-content-container');
+            const header = document.getElementById('main-header');
+            
+            // --- Mobile Detail Modal Elements ---
+            const detailModal = document.getElementById('detail-modal');
+            const modalBox = detailModal.querySelector('div:last-child');
+            const mobileDetailContent = document.getElementById('mobile-detail-content');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const prevMobileDetailBtn = document.getElementById('prev-mobile-detail-slide');
+            const nextMobileDetailBtn = document.getElementById('next-mobile-detail-slide');
+
+            // --- SVG Button Logic ---
+            const svgButton = document.getElementById('custom-svg-button');
+            const rect = document.getElementById('body');
+            const arrow = document.getElementById('arrow');
+            const subIcon1 = document.getElementById('sub-icon-1');
+            const subIcon2 = document.getElementById('sub-icon-2');
+            const subIcon3 = document.getElementById('sub-icon-3');
+            
+            let expanded = false;
+
+            if (svgButton) {
+                svgButton.addEventListener('click', () => {
+                    expanded = !expanded;
+                    svgButton.parentElement.classList.toggle('is-expanded', expanded);
+
+                    if (expanded) {
+                        rect.setAttribute('height', 320);
+                        arrow.style.opacity = 0;
+                    } else {
+                        rect.setAttribute('height', 100);
+                        arrow.style.opacity = 1;
+                        rightContentContainer.classList.remove('panel-active');
+                    }
+                });
+            }
+            
+            if(subIcon1) subIcon1.addEventListener('click', (e) => {
+                e.stopPropagation();
+                rightContentContainer.classList.toggle('panel-active');
+            });
+            if(subIcon2) subIcon2.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('Tombol 2 diklik');
+            });
+            if(subIcon3) subIcon3.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('Tombol 3 diklik');
+            });
+
+
+            // --- Tampilkan Header setelah delay ---
+            setTimeout(() => {
+                header.style.opacity = '1';
+            }, 1000);
+
+            // --- Main Menu Toggle ---
+            menuToggle.addEventListener('click', () => {
+                const isClosing = body.classList.contains('menu-active');
+                
+                if (isClosing) {
+                    body.classList.add('is-closing');
+                    body.classList.remove('menu-active');
+                    rightContentContainer.classList.remove('panel-active');
+                    if (svgButton) {
+                       svgButton.parentElement.classList.remove('is-expanded');
+                       rect.setAttribute('height', 100);
+                       arrow.style.opacity = 1;
+                       expanded = false;
+                    }
+                    setTimeout(() => {
+                        body.classList.remove('is-closing');
+                    }, 800); 
+                } else {
+                    body.classList.add('menu-active');
+                }
+            });
+
+            // --- Typography data for sliders ---
+            const typographyData = [
+                { html: '<h2 class="text-4xl font-black tracking-tighter">KREATIF</h2>' },
+                { html: '<h2 class="text-4xl font-thin tracking-widest uppercase">Minimalis</h2>' },
+                { html: '<h2 class="text-4xl font-classy-serif italic">Elegan</h2>' }
+            ];
+
+            // --- Populate Typography Sliders ---
+            const typoSlidesContainer = document.getElementById('typography-slides-container');
+            if (typoSlidesContainer) {
+                typographyData.forEach((item, index) => {
+                    const slide = document.createElement('div');
+                    slide.className = 'typo-slide';
+                    if (index === 0) slide.classList.add('active');
+                    slide.innerHTML = item.html;
+                    typoSlidesContainer.appendChild(slide);
+                });
+            }
+
+            // --- Setup Left Navbar Slider ---
+            setupSlider({
+                slidesSelector: '.slide',
+                prevButtonId: 'prev-slide',
+                nextButtonId: 'next-slide',
+                indicatorsContainerId: 'slide-indicators',
+                sliderContainerId: 'slider'
+            });
+
+            // --- Setup Right Typography Banner Slider ---
+            setupSlider({
+                slidesSelector: '.typo-slide',
+                prevButtonId: 'prev-typo-slide',
+                nextButtonId: 'next-typo-slide',
+                sliderContainerId: 'typography-slider',
+                autoplay: 3500
+            });
+
+            // --- Universal Slider Setup Function ---
+            function setupSlider(config) {
+                const sliderContainer = document.getElementById(config.sliderContainerId);
+                if (!sliderContainer) return;
+                
+                const slides = sliderContainer.querySelectorAll(config.slidesSelector);
+                const prevButton = document.getElementById(config.prevButtonId);
+                const nextButton = document.getElementById(config.nextButtonId);
+                const indicatorsContainer = config.indicatorsContainerId ? document.getElementById(config.indicatorsContainerId) : null;
+                
+                let currentSlide = 0;
+                const totalSlides = slides.length;
+                if (totalSlides === 0) return;
+
+                if (indicatorsContainer) {
+                    indicatorsContainer.innerHTML = ''; // Clear existing indicators
+                    for (let i = 0; i < totalSlides; i++) {
+                        const button = document.createElement('button');
+                        button.className = 'w-3 h-3 rounded-full transition-colors';
+                        button.dataset.slideIndex = i;
+                        indicatorsContainer.appendChild(button);
+                    }
+                    const indicators = indicatorsContainer.querySelectorAll('button');
+                    indicators.forEach(indicator => {
+                        indicator.addEventListener('click', (e) => {
+                            currentSlide = parseInt(e.target.dataset.slideIndex);
+                            updateSlider();
+                        });
+                    });
+                }
+
+                function updateSlider() {
+                    slides.forEach((slide, index) => {
+                        slide.classList.toggle('active', index === currentSlide);
+                        
+                        // Mobile "View Details" button logic
+                        const detailsBtn = slide.querySelector('.view-details-btn');
+                        if (detailsBtn) {
+                            if (index > 0) { // Not on slide 1
+                                const colorClass = slide.dataset.detailsBg || 'bg-gray-800';
+                                detailsBtn.className = `view-details-btn mt-6 ${colorClass}`;
+                            }
+                        }
+                    });
+                    
+                    if (indicatorsContainer) {
+                        const indicators = indicatorsContainer.querySelectorAll('button');
+                        indicators.forEach((indicator, index) => {
+                            indicator.classList.toggle('bg-black', index === currentSlide);
+                            indicator.classList.toggle('bg-gray-300', index !== currentSlide);
+                        });
+                    }
+                    
+                    if (prevButton && nextButton && !config.autoplay) {
+                        prevButton.disabled = currentSlide === 0;
+                        nextButton.disabled = currentSlide === totalSlides - 1;
+                    }
+                }
+
+                function goToNextSlide() {
+                    if (config.autoplay) {
+                         currentSlide = (currentSlide + 1) % totalSlides;
+                    } else if (currentSlide < totalSlides - 1) {
+                        currentSlide++;
+                    }
+                    updateSlider();
+                }
+
+                function goToPrevSlide() {
+                     if (config.autoplay) {
+                        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                     } else if (currentSlide > 0) {
+                        currentSlide--;
+                    }
+                    updateSlider();
+                }
+
+                if (nextButton) nextButton.addEventListener('click', goToNextSlide);
+                if (prevButton) prevButton.addEventListener('click', goToPrevSlide);
+
+                if (config.autoplay) {
+                    setInterval(goToNextSlide, config.autoplay);
+                }
+                
+                let touchstartX = 0;
+                sliderContainer.addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX, { passive: true });
+                sliderContainer.addEventListener('touchend', e => {
+                    const touchendX = e.changedTouches[0].screenX;
+                    if (touchendX < touchstartX - 50) {
+                        if (config.prevButtonId) goToNextSlide();
+                    }
+                    if (touchendX > touchstartX + 50) {
+                        if (config.prevButtonId) goToPrevSlide();
+                    }
+                }, { passive: true });
+
+                if (config.sliderContainerId === 'slider') {
+                    slides.forEach((slide, index) => {
+                        const detailsBtn = slide.querySelector('.view-details-btn');
+                        if (detailsBtn) {
+                            detailsBtn.addEventListener('click', () => {
+                                const typoIndex = index - 1; 
+                                if (typoIndex >= 0 && typoIndex < typographyData.length) {
+                                    openModal(typoIndex);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                updateSlider();
+            }
+
+            // --- Mobile Detail Modal Logic ---
+            let currentDetailIndex = 0;
+
+            const openModal = (index) => {
+                currentDetailIndex = index;
+                if (typographyData[currentDetailIndex]) {
+                    mobileDetailContent.innerHTML = typographyData[currentDetailIndex].html;
+                    updateMobileNav();
+                }
+                detailModal.classList.remove('opacity-0', 'pointer-events-none');
+                modalBox.classList.remove('scale-95');
+                body.classList.add('modal-open');
+            };
+
+            const closeModal = () => {
+                modalBox.classList.add('scale-95');
+                detailModal.classList.add('opacity-0');
+                setTimeout(() => {
+                    detailModal.classList.add('pointer-events-none');
+                    body.classList.remove('modal-open');
+                }, 300);
+            };
+            
+            const updateMobileNav = () => {
+                prevMobileDetailBtn.disabled = currentDetailIndex === 0;
+                nextMobileDetailBtn.disabled = currentDetailIndex === typographyData.length - 1;
+            };
+
+            prevMobileDetailBtn.addEventListener('click', () => {
+                if (currentDetailIndex > 0) {
+                    openModal(currentDetailIndex - 1);
+                }
+            });
+
+            nextMobileDetailBtn.addEventListener('click', () => {
+                if (currentDetailIndex < typographyData.length - 1) {
+                    openModal(currentDetailIndex + 1);
+                }
+            });
+
+            closeModalBtn.addEventListener('click', closeModal);
+            modalBackdrop.addEventListener('click', closeModal);
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && !detailModal.classList.contains('pointer-events-none')) {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
